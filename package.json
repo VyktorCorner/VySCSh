@@ -42,6 +42,7 @@
     "files": [
       "dist/**/*",
       "dist-renderer/**/*",
+      "build/**/*",
       "package.json"
     ],
     "directories": {
@@ -50,7 +51,8 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -60,8 +62,5 @@
   },
   "engines": {
     "node": ">=22"
-  },
-  "overrides": {
-    "yauzl": "^3.3.1"
   }
 }

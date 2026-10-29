@@ -1,4 +1,4 @@
-import type { SignalBody } from '../shared/types';
+import type { SignalBody, VideoQuality } from '../shared/types';
 
 type Role = 'host' | 'viewer';
 type Status = 'connecting' | 'connected' | 'disconnected' | 'failed';
@@ -32,7 +32,8 @@ export class RtcRoom {
     private readonly accessKey: string,
     private readonly role: Role,
     private readonly callbacks: Callbacks,
-    private readonly localStream?: MediaStream
+    private readonly localStream?: MediaStream,
+    private readonly quality: VideoQuality = { resolution: '1080p', fps: 60, bitrateMbps: 6 }
   ) {}
 
   async connect(): Promise<void> {
@@ -137,9 +138,9 @@ export class RtcRoom {
         if (track.kind === 'video') {
           const params = sender.getParameters();
           if (params.encodings?.length) {
-            params.encodings[0].maxBitrate = 6_000_000;
-            params.encodings[0].maxFramerate = 60;
-            void sender.setParameters(params).catch(() => {});
+            params.encodings[0].maxBitrate = Math.round(this.quality.bitrateMbps * 1_000_000);
+            params.encodings[0].maxFramerate = this.quality.fps;
+            void sender.setParameters(params).catch((err) => this.callbacks.onLog(`Limite de bitrate/FPS não aplicado: ${String(err)}`));
           }
         }
       }

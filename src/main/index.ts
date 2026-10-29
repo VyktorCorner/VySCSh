@@ -1,8 +1,9 @@
 import path from 'node:path';
 import { networkInterfaces, type NetworkInterfaceInfo } from 'node:os';
 import { isIP } from 'node:net';
-import { app, BrowserWindow, clipboard, desktopCapturer, ipcMain, session, type IpcMainInvokeEvent } from 'electron';
+import { app, BrowserWindow, Menu, clipboard, desktopCapturer, ipcMain, session, type IpcMainInvokeEvent } from 'electron';
 import { startSignaling, type RunningHost } from './signaling';
+import { discoverHosts } from './discovery';
 import type { AdapterInfo, CaptureSourceInfo, HostOptions } from '../shared/types';
 
 // Only this trusted local renderer may issue privileged IPC calls.
@@ -25,6 +26,7 @@ function ipv4Adapters(): AdapterInfo[] {
 
 function registerHandlers() {
   ipcMain.handle('vyscsh:list-adapters', (event) => { verifySender(event); return ipv4Adapters(); });
+  ipcMain.handle('vyscsh:discover-hosts', (event) => { verifySender(event); return discoverHosts(); });
   ipcMain.handle('vyscsh:list-sources', async (event): Promise<CaptureSourceInfo[]> => {
     verifySender(event);
     const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
@@ -45,7 +47,7 @@ function registerHandlers() {
       throw new Error('Invalid server parameters');
     }
     running = await startSignaling(input);
-    return { ip: input.bindIp, port: input.port };
+    return { ip: input.bindIp, port: input.port, discoveryEnabled: running.discoveryEnabled };
   });
   ipcMain.handle('vyscsh:stop-host', async (event) => {
     verifySender(event);
@@ -61,14 +63,20 @@ function registerHandlers() {
 }
 
 function createWindow() {
+  Menu.setApplicationMenu(null);
   mainWindow = new BrowserWindow({
-    width: 1160, height: 770, minWidth: 900, minHeight: 620,
-    backgroundColor: '#0e111a',
+    width: 1180, height: 790, minWidth: 920, minHeight: 600,
+    backgroundColor: '#000000',
+    autoHideMenuBar: true,
+    titleBarStyle: 'default',
+    title: 'VySCSh',
+    icon: path.join(app.getAppPath(), 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       nodeIntegration: false, contextIsolation: true, sandbox: true
     }
   });
+  mainWindow.setMenuBarVisibility(false);
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
   const devUrl = process.env.VYSC_SH_DEV_URL;
@@ -97,4 +105,3 @@ app.whenReady().then(() => {
 
 app.on('before-quit', () => { if (running) void running.close(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-

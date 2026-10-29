@@ -1,10 +1,11 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { WebSocket, WebSocketServer } from 'ws';
 import type { HostOptions } from '../shared/types';
+import { startDiscoveryResponder } from './discovery';
 
 type Role = 'host' | 'viewer';
 type Peer = { role: Role; id: string; authed: boolean; attempts: number; windowStart: number };
-export type RunningHost = { close(): Promise<void> };
+export type RunningHost = { close(): Promise<void>; discoveryEnabled: boolean };
 
 function secureEquals(a: string, b: string): boolean {
   const x = Buffer.from(a, 'utf8');
@@ -117,8 +118,12 @@ export async function startSignaling(options: HostOptions): Promise<RunningHost>
     throw err;
   }
 
+  // Discovery is optional: a firewall or VPN may block UDP broadcasts.
+  const closeDiscovery = await startDiscoveryResponder(bindIp, port);
   return {
+    discoveryEnabled: closeDiscovery !== null,
     async close() {
+      if (closeDiscovery) await closeDiscovery();
       for (const socket of peers.keys()) socket.terminate();
       await new Promise<void>((resolve) => wss.close(() => resolve()));
     }
