@@ -1,0 +1,14 @@
+name: Solicitar função
+description: Propor uma melhoria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Qual problema a função resolveria?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta

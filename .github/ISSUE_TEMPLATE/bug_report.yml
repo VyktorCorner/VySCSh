@@ -1,0 +1,28 @@
+name: Relatar bug
+description: Reportar um problema no VySCSh
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Descreva o problema
+      placeholder: O que aconteceu? O que deveria ter acontecido?
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: Modo
+      options: [Host, Viewer]
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Versão do Windows
+      placeholder: Windows 11 24H2
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passos para reproduzir
+      description: Não inclua chaves de sala nem IPs completos.
