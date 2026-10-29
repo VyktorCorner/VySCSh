@@ -112,7 +112,7 @@ Veja o [ROADMAP](ROADMAP.md) para acompanhar as ideias do projeto.
 
 ## Autores
 
-Feito por **VyktorCorner e um amigo**, como um projeto independente para aprender, testar e construir algo útil juntos.
+Feito por **VyktorCorner e Vyko**, como um projeto independente para aprender, testar e construir algo útil juntos.
 
 ## Licença
 
